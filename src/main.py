@@ -41,6 +41,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Set up Prometheus metrics with fks_build_info
+try:
+    from prometheus_client import CollectorRegistry, Gauge, generate_latest
+    from fastapi.responses import PlainTextResponse
+    
+    _metrics_registry = CollectorRegistry()
+    _build_info = Gauge(
+        "fks_build_info",
+        "Build information for the service",
+        ["service", "version"],
+        registry=_metrics_registry,
+    )
+    _build_info.labels(service="fks_futures", version="1.0.0").set(1)
+    
+    @app.get("/metrics", response_class=PlainTextResponse, include_in_schema=False)
+    async def metrics_endpoint():
+        return PlainTextResponse(
+            generate_latest(_metrics_registry).decode("utf-8"),
+            media_type="text/plain; version=0.0.4; charset=utf-8"
+        )
+    logger.info("✅ Prometheus metrics with fks_build_info registered")
+except Exception as e:
+    logger.warning(f"Could not set up Prometheus metrics: {e}")
+
 # Register routes
 if health_router:
     app.include_router(health_router, tags=["health"])

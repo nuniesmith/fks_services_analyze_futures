@@ -3,6 +3,9 @@ fastapi>=0.115.0
 uvicorn[standard]>=0.32.0
 pydantic>=2.0.0
 
+# Metrics
+prometheus_client>=0.19.0
+
 # HTTP clients for FKS service integration
 httpx>=0.25.0
 requests>=2.31.0
